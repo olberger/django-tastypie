@@ -5,6 +5,7 @@ from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 
+from rdflib import Literal
 from myapp.models import Entry
 
 # Add bits necessary for RDF dehydratation / serialization
@@ -42,3 +43,7 @@ class EntryResource(RdfModelResource):
         django_model = Entry
         # RDF serialization, in addition to the classic ones
         serializer = RDFSerializer()
+
+    def dehydrate_body(self, bundle):
+        body = "MESSAGE: %s /MESSAGE" % bundle.data['body']
+        return Literal(body)
