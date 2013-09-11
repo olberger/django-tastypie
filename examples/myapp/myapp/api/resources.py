@@ -7,6 +7,10 @@ from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 
 from myapp.models import Entry
 
+# Add bits necessary for RDF dehydratation / serialization
+from myapp.api.rdfmodels import RdfModelResource, RDFModelResourceMetaclass
+from myapp.api.serializers import RDFSerializer
+
 class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
@@ -18,7 +22,11 @@ class UserResource(ModelResource):
             'username': ALL,
         }
 
-class EntryResource(ModelResource):
+# The base class is RdfModelResource instead of Tastypie's plain ModelResource
+class EntryResource(RdfModelResource):
+    # The metaclass which will dynamically define the dehydrate_foo methods for fields in the RDF mapping
+    __metaclass__ = RDFModelResourceMetaclass
+
     user = fields.ForeignKey(UserResource, 'user')
 
     class Meta:
@@ -30,3 +38,7 @@ class EntryResource(ModelResource):
             'pub_date': ['exact', 'lt', 'lte', 'gte', 'gt'],
         }
 
+        # Add a pointer to the django model to go fetch the rdf mapping in its Meta
+        django_model = Entry
+        # RDF serialization, in addition to the classic ones
+        serializer = RDFSerializer()
